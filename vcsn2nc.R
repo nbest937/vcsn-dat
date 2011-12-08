@@ -3,9 +3,13 @@ library( raster)
 library( stringr)
 library( doMC)
 
-registerDoMC( cores=3)
+## registerDoMC( cores=3)
+registerDoMC()
 
 vcsnZipFiles <- list.files( path= "Daily_VCSN_data", full.names= TRUE)
+
+outDir <- "../vcsn-dat_out/nc/"
+dir.create( outDir, recursive= TRUE)
 
 vcsn <- {
   dats <- as.character( unzip( vcsnZipFiles[1], list= TRUE)$Name)
@@ -125,7 +129,9 @@ getVcsnDf <- function( vcsnDatFile) {
 vcsnCreateNc <- function( vcsnZipFile, compression= 5) {
   vcsnDatFiles <- sort( as.character( unzip( vcsnZipFile, list= TRUE)$Name))
   vcsnZipFileYear <- as.integer( str_extract( basename( vcsnZipFile), "[0-9]{4}"))
-  vcsnNcFile <- str_replace( basename( vcsnZipFile), "zip", "nc")
+  vcsnNcFile <- paste( outDir,
+                      str_replace( basename( vcsnZipFile), "zip", "nc"),
+                      sep="")
   if( file.exists( vcsnNcFile)) file.remove( vcsnNcFile)
   nc <- nc_create( 
     vcsnNcFile, 
@@ -160,7 +166,7 @@ vcsnCreateNc <- function( vcsnZipFile, compression= 5) {
 }
 
 
-vcsnCreateNc( vcsnZipFiles[1])
+##vcsnCreateNc( vcsnZipFiles[1])
 
 fe <- foreach( vcsnZipFile= vcsnZipFiles)
 
