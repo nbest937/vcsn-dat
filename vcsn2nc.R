@@ -49,7 +49,7 @@ vcsnVars <- function( year, days, ...) {
     list( x, y, t)
   }
   list(
-    ## crs= ncvar_def( "crs", list(), list(), prec= "integer"),
+    crs= ncvar_def( "crs", "", list(), prec= "integer"),
     MSLP=  ncvar_def( "MSLP", "hPa", dimVars, 1.e30, 
       longname= "Pressure reduced to Mean Sea Level in hPa at 9am local day",
       ...),
@@ -144,14 +144,15 @@ vcsnCreateNc <- function( vcsnZipFile, compression= 5) {
       vcsnZipFileYear))
   ncatt_put( nc, 0, "institution", "Computation Institute, University of Chicago")
   ncatt_put( nc, 0, "source", "New Zealand National Institute of Water and Atmospheric Research")
-  ## ncatt_put( nc, "crs", "grid_mapping_name", "latitude_longitude")
-  ## ncatt_put( nc, "crs", "semi_major_axis", 6378388)
-  ## ncatt_put( nc, "crs", "inverse_flattening", 297)
+  ncatt_put( nc, "crs", "grid_mapping_name", "latitude_longitude")
+  ncatt_put( nc, "crs", "semi_major_axis", 6378388)
+  ncatt_put( nc, "crs", "inverse_flattening", 297)
   for( day in 1:length( vcsnDatFiles) ) {
     vcsnDatFile <- unzip( vcsnZipFile, files= vcsnDatFiles[ day])
     vcsnDf <- getVcsnDf( vcsnDatFile)
     file.remove( vcsnDatFile)
-    for( vcsnVar in names( nc$var)) {  
+    for( vcsnVar in names( nc$var)) {
+      if( vcsnVar == "crs") next
       r <- try( rasterize( vcsnDf[, c("Longt", "Lat")], nz, vcsnDf[, vcsnVar]), 
                 silent= TRUE)
       ncvar_put( nc, 
@@ -165,9 +166,10 @@ vcsnCreateNc <- function( vcsnZipFile, compression= 5) {
   nc_close( nc)
 }
 
-
+## vcsnCreateSingleNc <- function( vcsnZipFiles, compression= 5) {
+  
 ##vcsnCreateNc( vcsnZipFiles[1])
 
-fe <- foreach( vcsnZipFile= vcsnZipFiles)
+fe <- foreach( vcsnZipFile= vcsnZipFiles[1:4])
 
 fe %dopar% vcsnCreateNc( vcsnZipFile)
